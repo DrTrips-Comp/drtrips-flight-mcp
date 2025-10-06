@@ -23,6 +23,7 @@
     "booking",
     "travel"
   ],
+  "mcpName": "io.github.drtrips-comp/flight-search",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
