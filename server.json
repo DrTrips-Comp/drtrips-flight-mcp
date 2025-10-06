@@ -1,0 +1,27 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-16/server.schema.json",
+  "name": "io.github.drtrips-comp/flight-search",
+  "version": "1.0.0",
+  "displayName": "Flight Search MCP Server",
+  "description": "Search flights using Booking.com API with flexible configurations and auto-location resolution.",
+  "sourceUrl": "https://github.com/DrTrips-Comp/drtrips-flight-mcp",
+  "homepage": "https://github.com/DrTrips-Comp/drtrips-flight-mcp",
+  "author": {
+    "name": "DrTrips-Comp"
+  },
+  "license": "MIT",
+  "deployments": {
+    "npm": {
+      "package": "flight-mcp-server"
+    }
+  },
+  "tools": [
+    {
+      "name": "search_flights",
+      "description": "Search for flights using Booking.com API. Supports round-trip and one-way flights with flexible passenger configurations (adults, children, infants). Automatically resolves location names to Booking.com identifiers."
+    }
+  ],
+  "transports": {
+    "stdio": true
+  }
+}
