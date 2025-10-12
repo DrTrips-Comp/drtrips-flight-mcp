@@ -34,38 +34,6 @@ A TypeScript-based MCP (Model Context Protocol) server that enables AI assistant
   - Subscribe to [Booking.com Flights API](https://rapidapi.com/DataCrawler/api/booking-com15)
   - Get your API key from the API dashboard
 
-## Installation
-
-### Option 1: Use with npx (Recommended)
-
-No installation required! Use directly with npx:
-
-```bash
-npx flight-mcp-server
-```
-
-### Option 2: Global Installation
-
-Install globally for system-wide access:
-
-```bash
-npm install -g flight-mcp-server
-```
-
-Then run with:
-
-```bash
-flight-mcp-server
-```
-
-### Option 3: Local Installation
-
-Install in your project:
-
-```bash
-npm install flight-mcp-server
-```
-
 ## Configuration
 
 ### Environment Variables
@@ -115,30 +83,6 @@ Add the following to your Claude Desktop configuration file:
 }
 ```
 
-**Alternative: Using Global Installation**
-
-If you installed globally:
-
-```json
-{
-  "mcpServers": {
-    "flight-search": {
-      "command": "flight-mcp-server",
-      "env": {
-        "RAPID_API_KEY": "your_rapidapi_key_here"
-      }
-    }
-  }
-}
-```
-
-### Restart Claude Desktop
-
-After updating the configuration:
-
-1. Quit Claude Desktop completely
-2. Restart Claude Desktop
-3. The flight search tool will be available in new conversations
 
 ## API Reference
 
@@ -267,34 +211,6 @@ Specify any ISO 4217 currency code:
 
 ## Troubleshooting
 
-### Server Not Appearing in Claude Desktop
-
-1. **Verify configuration file location**:
-   - MacOS/Linux: `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-
-2. **Check JSON syntax**: Ensure valid JSON with proper commas and brackets
-
-3. **Restart Claude Desktop**: Fully quit and restart the application
-
-4. **Check logs**:
-   - MacOS/Linux: `~/Library/Logs/Claude/mcp*.log`
-   - Windows: `%APPDATA%\Claude\logs\mcp*.log`
-
-### API Key Issues
-
-**Error: "Invalid API key"**
-
-- Verify your RapidAPI key is correct
-- Ensure you're subscribed to the Booking.com Flights API
-- Check for extra spaces or quotes in the configuration
-
-**Error: "Rate limit exceeded"**
-
-- Check your RapidAPI plan limits
-- Consider upgrading your subscription
-- Wait for the rate limit to reset
-
 ### No Results Returned
 
 **Location not found**:
@@ -307,114 +223,6 @@ Specify any ISO 4217 currency code:
 - Check if the route exists (some city pairs have no direct connections)
 - Extend your date range
 
-### Installation Issues
-
-**Node version error**:
-```bash
-node --version  # Should be 18 or higher
-```
-
-Update Node.js from [nodejs.org](https://nodejs.org/)
-
-**npx command not found**:
-- Ensure npm is installed: `npm --version`
-- Reinstall Node.js which includes npm
-
-**Permission errors on Linux/Mac**:
-```bash
-sudo npm install -g flight-mcp-server
-```
-
-Or configure npm to install globally without sudo:
-```bash
-mkdir ~/.npm-global
-npm config set prefix '~/.npm-global'
-echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.profile
-source ~/.profile
-```
-
-## Development
-
-### Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/DrTrips-Comp/drtrips-flight-mcp.git
-cd drtrips-flight-mcp
-
-# Install dependencies
-npm install
-
-# Build TypeScript
-npm run build
-
-# Run in development mode
-npm run dev
-
-# Watch mode (auto-rebuild on changes)
-npm run watch
-```
-
-### Project Structure
-
-```
-flight-mcp-server/
-├── src/
-│   ├── config/
-│   │   └── settings.ts          # Environment configuration and API settings
-│   ├── models/
-│   │   └── flight-models.ts     # Zod schemas and TypeScript types
-│   ├── services/
-│   │   └── flight-api.ts        # Flight search API client with concurrent processing
-│   ├── server.ts                # MCP server implementation
-│   └── index.ts                 # Entry point with stdio transport
-├── dist/                        # Compiled JavaScript (generated)
-├── package.json                 # NPM configuration
-├── tsconfig.json                # TypeScript configuration
-└── README.md                    # This file
-```
-
-### Testing MCP Protocol
-
-Test the server directly with JSON-RPC:
-
-```bash
-# Initialize the server
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}' | npx flight-mcp-server
-
-# List available tools
-echo '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | npx flight-mcp-server
-```
-
-## Architecture
-
-### Core Components
-
-1. **Configuration Layer** (`src/config/settings.ts`)
-   - Environment variable loading with dotenv
-   - API credentials management
-   - Base URL configuration for external services
-
-2. **Data Models** (`src/models/flight-models.ts`)
-   - Zod validation schemas for runtime type checking
-   - TypeScript types for compile-time safety
-   - Input validation and sanitization
-
-3. **API Service** (`src/services/flight-api.ts`)
-   - Booking.com API integration with axios
-   - Concurrent processing with Promise.allSettled()
-   - Automatic location ID resolution
-   - Flight data formatting and enrichment
-
-4. **MCP Server** (`src/server.ts`)
-   - Tool registration and request handling
-   - Schema-based input validation
-   - Formatted output generation
-
-5. **Entry Point** (`src/index.ts`)
-   - Stdio transport for MCP protocol
-   - Server lifecycle management
-
 ### Data Flow
 
 1. Claude sends search request via MCP protocol
@@ -424,28 +232,8 @@ echo '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | npx flight-m
 5. Concurrent formatting of flight results
 6. Structured response sent back to Claude
 
-### Performance Optimizations
-
-- **Concurrent Processing**: Uses `Promise.allSettled()` for parallel operations
-- **Smart Caching**: Location IDs could be cached (future enhancement)
-- **Result Limiting**: Returns top 5 flights to reduce response time
-- **Efficient Formatting**: Parallel segment processing for each flight
 
 ## Technical Details
-
-### TypeScript & Type Safety
-
-- Strict TypeScript configuration with `strict: true`
-- Runtime validation with Zod schemas
-- Type inference using `z.infer<typeof Schema>`
-- Full interface definitions for API responses
-
-### Error Handling
-
-- Graceful degradation on API failures
-- Detailed error logging to stderr
-- User-friendly error messages
-- Fallback behaviors for missing data
 
 ### Location Resolution
 
@@ -463,14 +251,6 @@ echo '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | npx flight-m
 
 ## API Limitations
 
-### Booking.com API via RapidAPI
-
-- **Rate Limits**: Vary by subscription plan (check RapidAPI dashboard)
-- **Request Limits**: Typically 100-500 requests/day on free tier
-- **Data Freshness**: Flight data may be cached up to 15 minutes
-- **Availability**: Some routes or dates may have limited results
-- **Pricing**: Prices are estimates and may differ on booking site
-
 ### Recommendations
 
 - Use specific airport codes for better results
@@ -478,55 +258,10 @@ echo '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | npx flight-m
 - Book directly through generated URLs for best prices
 - Verify all details on Booking.com before purchasing
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests on [GitHub](https://github.com/DrTrips-Comp/drtrips-flight-mcp).
-
-### Development Guidelines
-
-1. Follow TypeScript best practices
-2. Maintain type safety with strict mode
-3. Add Zod schemas for new inputs
-4. Write clear error messages
-5. Update documentation for new features
-6. Test with MCP protocol before submitting
-
-## Changelog
-
-### Version 1.0.9 (Current)
-
-- Published to npm registry
-- Added MCP registry integration
-- Improved documentation
-- Enhanced error handling
-
-### Version 1.0.0
-
-- Initial TypeScript implementation
-- Migrated from Python to TypeScript
-- Full MCP SDK integration
-- Concurrent processing support
-- Comprehensive type safety
-
-## Related Projects
-
-Part of the larger lanflow-recommendation system:
-
-- **distance_matrix_mcp** - Distance and travel time calculations
-- **google_place_api_mcp** - Google Places integration
-- **hotel_mcp** - Hotel search functionality
-- **research_mcp** - Travel research capabilities
-- **weather_mcp** - Weather information service
 
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/DrTrips-Comp/drtrips-flight-mcp/issues)
-- **Documentation**: [MCP Registry](https://modelcontextprotocol.io/registry/io.github.drtrips-comp/flight-search)
-- **RapidAPI Support**: [RapidAPI Help Center](https://support.rapidapi.com/)
 
 ## Acknowledgments
 
