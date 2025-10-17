@@ -105,6 +105,7 @@ export class FlightSearchAPI {
     cabin_class?: string;
     sort?: string;
     currency?: string;
+    limit?: number;
   }): Promise<{ flights: FlightResult[]; total_request: number }> {
     const {
       origin,
@@ -117,7 +118,8 @@ export class FlightSearchAPI {
       children_ages = [],
       cabin_class = 'ECONOMY',
       sort = 'BEST',
-      currency = 'USD'
+      currency = 'USD',
+      limit = 5
     } = params;
 
     // Track API requests
@@ -137,10 +139,18 @@ export class FlightSearchAPI {
     }
 
     if (!resolvedFromId) {
-      throw new Error(`Unable to resolve origin '${origin || fromId}' to a Booking.com fromId`);
+      throw new Error(
+        `Unable to resolve origin '${origin || fromId}' to a Booking.com location. ` +
+        `Try using a specific airport code (e.g., 'JFK' instead of 'New York area') ` +
+        `or a major city name (e.g., 'New York' instead of 'NY').`
+      );
     }
     if (!resolvedToId) {
-      throw new Error(`Unable to resolve destination '${destination || toId}' to a Booking.com toId`);
+      throw new Error(
+        `Unable to resolve destination '${destination || toId}' to a Booking.com location. ` +
+        `Try using a specific airport code (e.g., 'LHR' instead of 'London area') ` +
+        `or a major city name (e.g., 'London' instead of 'LON').`
+      );
     }
 
     // Validate and normalize parameters
@@ -216,8 +226,8 @@ export class FlightSearchAPI {
       if (response.status === 200) {
         const flights = response.data?.data?.flightOffers || [];
 
-        // Process up to 5 flights concurrently
-        const flightsToProcess = flights.slice(0, 5);
+        // Process flights up to the specified limit concurrently
+        const flightsToProcess = flights.slice(0, limit);
         const formattingPromises = flightsToProcess.map(flight =>
           this.formatFlightDataAsync(flight, searchContext)
         );

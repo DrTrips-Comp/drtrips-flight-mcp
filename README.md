@@ -86,9 +86,9 @@ Add the following to your Claude Desktop configuration file:
 
 ## API Reference
 
-### search_flights Tool
+### flight_search_flights Tool
 
-The MCP server exposes a single tool for flight searches:
+The MCP server exposes a single tool for flight searches with comprehensive filtering options.
 
 #### Parameters
 
@@ -101,56 +101,195 @@ The MCP server exposes a single tool for flight searches:
 | `departure_date` | string | Yes | Departure date in YYYY-MM-DD format |
 | `return_date` | string | No | Return date in YYYY-MM-DD format (omit for one-way) |
 | `adults` | number | No | Number of adults (1-9, default: 1) |
-| `children_age` | number[] | No | Array of children ages (0-17, age 0 = infant) |
+| `children_ages` | number[] | No | Array of children ages (0-17, age 0 = infant) |
 | `cabin_class` | string | No | Cabin class: ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST (default: ECONOMY) |
-| `sort` | string | No | Sort by: BEST, PRICE, DURATION, DEPARTURE_TIME, ARRIVAL_TIME (default: BEST) |
-| `currency_code` | string | No | Currency for prices (default: USD) |
+| `sort` | string | No | Sort by: BEST, CHEAPEST, FASTEST (default: BEST) |
+| `currency` | string | No | Currency code (default: USD) |
+| `limit` | number | No | Maximum flights to return (1-50, default: 5) |
+| `response_format` | string | No | Output format: "markdown" or "json" (default: "markdown") |
 
 \* Either `origin`/`destination` OR `fromId`/`toId` must be provided
 
-#### Response
+#### Response Formats
 
-The tool returns a formatted text response containing:
+The tool supports two response formats for different use cases:
 
-- **Trip Summary**: Type (round-trip/one-way), origin, destination, dates, passengers
-- **Flight List**: Up to 5 flights with detailed information:
-  - Price (with currency)
-  - Outbound segments (airline, flight number, airports, times, duration)
-  - Return segments (for round-trips)
-  - Direct booking URL
-- **Metadata**: Total flights found, API response time
+##### Markdown Format (default)
 
-#### Example Response Structure
+Human-readable formatted text with:
+- Trip summary with route, dates, passengers
+- Flight details with emojis (✈️ Outbound, 🔙 Return, 💰 Price)
+- Formatted times and durations
+- Price breakdown
+- Direct booking links
 
-```
-Found 42 flights from New York to London
+**Example Markdown Response:**
 
-Trip Details:
-- Type: round-trip
-- Route: New York (JFK.AIRPORT) → London (LON.CITY)
-- Dates: 2025-11-01 to 2025-11-08
-- Passengers: 2 adults
+```markdown
+# Flight Search Results
 
-Flight 1:
-Price: $850.00 USD
+**New York** → **London**
 
-Outbound - November 1, 2025:
-  Segment 1: British Airways BA 178
-    JFK (John F. Kennedy International) → LHR (London Heathrow)
-    Depart: 10:30 PM | Arrive: 10:45 AM (+1 day)
-    Duration: 7h 15m
+## Trip Details
+- **Type**: Round-trip
+- **Departure**: 2025-11-20
+- **Return**: 2025-11-27
+- **Passengers**: 2 adults
+- **Cabin**: ECONOMY
+- **Sort**: CHEAPEST
 
-Return - November 8, 2025:
-  Segment 1: British Airways BA 177
-    LHR (London Heathrow) → JFK (John F. Kennedy International)
-    Depart: 1:30 PM | Arrive: 4:45 PM
-    Duration: 8h 15m
-
-Book: https://www.booking.com/flights/...
+**Found 3 flights** (3 API requests)
 
 ---
-[Additional flights...]
+
+## Flight 1: $1167.00
+
+### ✈️ Outbound
+- **Air Canada** (AC)
+  - **From**: LGA - LaGuardia Airport, New York
+    - Nov 20, 10:35 AM • Terminal B
+  - **To**: LHR - London Heathrow Airport, London
+    - Nov 21, 7:10 AM • Terminal N/A
+  - **Duration**: 15h 35m • **Cabin**: ECONOMY
+
+### 🔙 Return
+- **Air Canada** (AC)
+  - **From**: LHR - London Heathrow Airport, London
+    - Nov 27, 1:25 PM • Terminal 2
+  - **To**: LGA - LaGuardia Airport, New York
+    - Nov 27, 7:03 PM • Terminal N/A
+  - **Duration**: 10h 38m • **Cabin**: ECONOMY
+
+### 💰 Price Breakdown
+- **Total**: $1167.00
+- Base Fare: $52.00
+- Taxes: $1114.39
+
+**[Book this flight on Booking.com](https://flights.booking.com/...)**
+
+---
 ```
+
+##### JSON Format
+
+Structured data perfect for programmatic processing:
+
+**Example JSON Response:**
+
+```json
+{
+  "search_params": {
+    "origin": "JFK",
+    "destination": "LHR",
+    "departure_date": "2025-12-01",
+    "return_date": "2025-12-08",
+    "trip_type": "ROUNDTRIP",
+    "adults": 1,
+    "children_ages": [8, 12],
+    "cabin_class": "BUSINESS",
+    "sort": "BEST",
+    "currency": "USD"
+  },
+  "total_flights": 2,
+  "total_request": 3,
+  "flights": [
+    {
+      "id": "",
+      "price": {
+        "total": "$3407.00",
+        "base_fare": "$1397.56",
+        "taxes": "$2009.00",
+        "discount": "$0.00"
+      },
+      "trip_type": "ROUNDTRIP",
+      "booking_url": "https://flights.booking.com/flights/NYC-LON?...",
+      "flights": [
+        {
+          "departure": {
+            "name": "Newark Liberty International Airport",
+            "code": "EWR",
+            "city": "New York",
+            "country": "United States",
+            "terminal": "N/A",
+            "time": "2025-12-01T23:55:00"
+          },
+          "arrival": {
+            "name": "London Gatwick Airport",
+            "code": "LGW",
+            "city": "London",
+            "country": "United Kingdom",
+            "terminal": "N/A",
+            "time": "2025-12-02T15:45:00"
+          },
+          "duration_minutes": 650,
+          "cabin_class": "ECONOMY",
+          "airline": {
+            "name": "TAP Portugal",
+            "code": "TP",
+            "logo": "https://r-xx.bstatic.com/data/airlines_logo/TP.png"
+          }
+        },
+        {
+          "departure": {
+            "name": "London Gatwick Airport",
+            "code": "LGW",
+            "city": "London",
+            "country": "United Kingdom",
+            "terminal": "S",
+            "time": "2025-12-08T10:40:00"
+          },
+          "arrival": {
+            "name": "John F. Kennedy International Airport",
+            "code": "JFK",
+            "city": "New York",
+            "country": "United States",
+            "terminal": "1",
+            "time": "2025-12-08T20:05:00"
+          },
+          "duration_minutes": 865,
+          "cabin_class": "BUSINESS",
+          "airline": {
+            "name": "TAP Portugal",
+            "code": "TP",
+            "logo": "https://r-xx.bstatic.com/data/airlines_logo/TP.png"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Response Metadata
+
+The tool also returns metadata in the MCP response:
+
+```json
+{
+  "total_flights": 3,
+  "total_request": 3,
+  "origin": "New York",
+  "destination": "London",
+  "departure_date": "2025-11-20",
+  "return_date": "2025-11-27",
+  "trip_type": "ROUNDTRIP",
+  "adults": 2,
+  "cabin_class": "ECONOMY",
+  "response_format": "markdown"
+}
+```
+
+**Metadata Fields:**
+- `total_flights`: Number of flights returned in results
+- `total_request`: Number of API requests made (includes location lookups)
+- `origin`: Departure location as provided
+- `destination`: Arrival location as provided
+- `departure_date`: Departure date
+- `return_date`: Return date (null for one-way)
+- `trip_type`: "ROUNDTRIP" or "ONEWAY"
+- `adults`: Number of adult passengers
+- `cabin_class`: Selected cabin class
+- `response_format`: Format used ("markdown" or "json")
 
 ## Example Queries
 
@@ -185,20 +324,36 @@ Once configured with Claude Desktop, you can ask Claude natural language questio
 - `BUSINESS` - Business class
 - `FIRST` - First class
 
+### Response Format Options
+
+- `markdown` - Human-readable formatted text with emojis and structured layout (default)
+- `json` - Machine-readable structured data with complete flight details
+
 ### Sort Options
 
 - `BEST` - Booking.com's recommended flights (default)
-- `PRICE` - Lowest price first
-- `DURATION` - Shortest flight time first
-- `DEPARTURE_TIME` - Earliest departure first
-- `ARRIVAL_TIME` - Earliest arrival first
+- `CHEAPEST` - Lowest price first
+- `FASTEST` - Shortest flight time first
 
 ### Children and Infants
 
-- Children ages are specified as an array: `[8, 12, 14]`
+- Children ages specified as array in `children_ages`: `[8, 12, 14]`
 - Age 0 is treated as an infant (typically free or reduced fare)
 - Ages 1-17 are children (may have reduced fares)
 - Each airline has different age policies
+
+### Pagination
+
+- Use `limit` parameter to control number of results (1-50)
+- Default: 5 flights per search
+- Higher limits may result in longer response times
+
+### Character Limits
+
+- Responses are limited to 25,000 characters to prevent overwhelming LLM context
+- If exceeded, results are automatically truncated with a clear message
+- Truncation message provides guidance on how to get more results
+- Use smaller `limit` values or more specific filters to avoid truncation
 
 ### Currency Codes
 
@@ -209,19 +364,72 @@ Specify any ISO 4217 currency code:
 - `JPY` - Japanese Yen
 - And more...
 
+## Output Structure Details
+
+### Flight Object Schema
+
+Each flight in the results contains:
+
+```typescript
+{
+  id: string;                    // Flight offer ID from Booking.com
+  price: {
+    total: string;               // Total price formatted (e.g., "$850.00")
+    base_fare: string;           // Base fare before taxes
+    taxes: string;               // Total taxes and fees
+    discount: string;            // Any discounts applied
+  };
+  trip_type: "ROUNDTRIP" | "ONEWAY";
+  booking_url: string;           // Direct booking link with all parameters
+  flights: Array<{               // Array of segments (outbound + return)
+    departure: {
+      name: string;              // Airport full name
+      code: string;              // IATA airport code
+      city: string;              // City name
+      country: string;           // Country name
+      terminal: string;          // Terminal (or "N/A")
+      time: string;              // ISO 8601 datetime
+    };
+    arrival: {
+      // Same structure as departure
+    };
+    duration_minutes: number;    // Flight duration in minutes
+    cabin_class: string;         // Actual cabin class for this segment
+    airline: {
+      name: string;              // Airline full name
+      code: string;              // IATA airline code
+      logo: string;              // URL to airline logo image
+    };
+  }>;
+}
+```
+
+### API Request Tracking
+
+The `total_request` field in responses tracks:
+1. Location lookup requests (origin + destination if needed)
+2. Flight search API request
+
+Example: Searching "New York" to "London" requires 3 requests:
+- 1 request to resolve "New York" to NYC.CITY
+- 1 request to resolve "London" to LON.CITY
+- 1 request to search flights
+
 ## Troubleshooting
 
 ### No Results Returned
 
 **Location not found**:
-- Try using airport codes instead of city names (e.g., "LAX" instead of "Los Angeles")
-- Verify the location name spelling
+- Error message will suggest using specific airport codes
+- Try IATA codes instead of city names (e.g., "LAX" instead of "Los Angeles")
+- Verify location name spelling
 - Use major airports or cities
 
 **No flights available**:
 - Try different dates (some routes may not be available)
 - Check if the route exists (some city pairs have no direct connections)
 - Extend your date range
+- Try nearby airports
 
 ### Data Flow
 

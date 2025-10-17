@@ -37,10 +37,38 @@ coverage/
 
 # Temporary files
 *.tmp
-test-*.ts
 test.ts
+
+# Test scripts (ad-hoc testing scripts)
+test-mcp.ts
+test-mcp-detailed.ts
+test-*.ts
 
 # MCP specific files
 .claude/
 CLAUDE.md
 .mcp.json
+
+# Test results and outputs
+result/
+results/
+test-output/
+test-results/
+*.result.json
+*.result.txt
+mcp-test-output-*.txt
+mcp-test-parsed-*.json
+all-responses-*.json
+test*-markdown-*.md
+test*-json-*.json
+test*-oneway-*.md
+
+# Evaluations
+evaluations/
+eval/
+*.eval.json
+*.eval.xml
+
+# Test summary and reports
+TEST-SUMMARY.md
+test-summary.md
